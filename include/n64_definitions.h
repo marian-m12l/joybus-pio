@@ -9,6 +9,8 @@ enum class N64Command {
     POLL = 0x01,
     READ_EXPANSION_BUS = 0x02,
     WRITE_EXPANSION_BUS = 0x03,
+    READ_EEPROM = 0x04,
+    WRITE_EEPROM = 0x05,
 };
 
 typedef struct __attribute__((packed)) {
@@ -63,6 +65,11 @@ static constexpr n64_report_t default_n64_report = {
 static constexpr n64_status_t default_n64_status = {
     .device = 0x0005,
     .status = 0x02,
+};
+
+static constexpr n64_status_t default_eeprom4k_status = {
+    .device = 0x8000,
+    .status = 0x00,
 };
 
 #endif
