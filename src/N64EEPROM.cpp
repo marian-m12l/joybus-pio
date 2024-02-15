@@ -1,4 +1,4 @@
-#include "N64EEPROM4k.hpp"
+#include "N64EEPROM.hpp"
 
 #include "joybus.h"
 #include "n64_definitions.h"
@@ -8,15 +8,19 @@
 #include <pico/stdlib.h>
 #include <pico/time.h>
 
-N64EEPROM4k::N64EEPROM4k(uint pin, PIO pio, int sm, int offset) {
+N64EEPROM::N64EEPROM(N64EEPROMType type, uint pin, PIO pio, int sm, int offset) {
+    _eeprom_status = (n64_status_t){
+        .device = (uint16_t) type,
+        .status = 0x00,
+    };
     joybus_port_init(&_port, pin, pio, sm, offset);
 }
 
-N64EEPROM4k::~N64EEPROM4k() {
+N64EEPROM::~N64EEPROM() {
     joybus_port_terminate(&_port);
 }
 
-n64_eeprom_operation_t __no_inline_not_in_flash_func(N64EEPROM4k::WaitForCommand)() {
+n64_eeprom_operation_t __no_inline_not_in_flash_func(N64EEPROM::WaitForCommand)() {
     n64_eeprom_operation_t operation;
 
     while (true) {
@@ -27,7 +31,7 @@ n64_eeprom_operation_t __no_inline_not_in_flash_func(N64EEPROM4k::WaitForCommand
             case N64Command::PROBE:
                 // Wait for stop bit before responding.
                 busy_wait_us(reply_delay);
-                joybus_send_bytes(&_port, (uint8_t *)&default_eeprom4k_status, sizeof(n64_status_t));
+                joybus_send_bytes(&_port, (uint8_t *)&_eeprom_status, sizeof(n64_status_t));
                 break;
             case N64Command::READ_EEPROM:
                 joybus_receive_bytes(&_port, &operation.page, 1, receive_timeout_us, false);
@@ -51,7 +55,7 @@ n64_eeprom_operation_t __no_inline_not_in_flash_func(N64EEPROM4k::WaitForCommand
     }
 }
 
-void __no_inline_not_in_flash_func(N64EEPROM4k::SendData)(uint8_t *data, uint8_t length) {
+void __no_inline_not_in_flash_func(N64EEPROM::SendData)(uint8_t *data, uint8_t length) {
     // Wait for receive timeout to end before responding.
     while (!time_reached(_receive_end)) {
         tight_loop_contents();
@@ -60,6 +64,6 @@ void __no_inline_not_in_flash_func(N64EEPROM4k::SendData)(uint8_t *data, uint8_t
     joybus_send_bytes(&_port, data, length);
 }
 
-int N64EEPROM4k::GetOffset() {
+int N64EEPROM::GetOffset() {
     return _port.offset;
 }

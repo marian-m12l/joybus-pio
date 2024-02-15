@@ -67,9 +67,4 @@ static constexpr n64_status_t default_n64_status = {
     .status = 0x02,
 };
 
-static constexpr n64_status_t default_eeprom4k_status = {
-    .device = 0x8000,
-    .status = 0x00,
-};
-
 #endif

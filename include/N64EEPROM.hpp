@@ -1,5 +1,5 @@
-#ifndef _JOYBUS_N64EEPROM4K_HPP
-#define _JOYBUS_N64EEPROM4K_HPP
+#ifndef _JOYBUS_N64EEPROM_HPP
+#define _JOYBUS_N64EEPROM_HPP
 
 #include "joybus.h"
 #include "n64_definitions.h"
@@ -14,12 +14,18 @@ typedef struct __attribute__((packed)) {
   uint8_t data[8];
 } n64_eeprom_operation_t;
 
+enum class N64EEPROMType {
+    EEPROM_4K = 0x8000,
+    EEPROM_16K = 0xC000,
+};
 
-class N64EEPROM4k {
+
+class N64EEPROM {
   public:
     /**
-     * @brief Construct a new N64EEPROM4k object
+     * @brief Construct a new N64EEPROM object
      *
+     * @param type The type of EEPROM (4k or 16k)
      * @param pin The GPIO pin that the N64 console's data line is connected to
      * @param pio The PIO instance; either pio0 or pio1. Default is pio0.
      * @param sm The PIO state machine to run the joybus instance on. Default is to automatically
@@ -27,13 +33,13 @@ class N64EEPROM4k {
      * @param offset The instruction memory offset at which to load the PIO program. Default is to
      * allocate automatically.
      */
-    N64EEPROM4k(uint pin, PIO pio = pio0, int sm = -1, int offset = -1);
+    N64EEPROM(N64EEPROMType type, uint pin, PIO pio = pio0, int sm = -1, int offset = -1);
 
     /**
      * @brief Cleanly terminate the joybus PIO instance, freeing the state machine, and uninstalling
      * the joybus program from the PIO instance
      */
-    ~N64EEPROM4k();
+    ~N64EEPROM();
 
     /**
      * @brief Block until a read or write command is received from the N64 console. Automatically responds to
@@ -70,6 +76,8 @@ class N64EEPROM4k {
 
     joybus_port_t _port;
     absolute_time_t _receive_end;
+    n64_status_t _eeprom_status;
+    
 };
 
 #endif
